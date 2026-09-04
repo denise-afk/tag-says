@@ -93,15 +93,24 @@ order history or fulfillment tracking), that's a natural next step.
 
 ## Connecting payments (Stripe)
 
-1. Set `STRIPE_SECRET_KEY` in your environment.
-2. Implement `createCheckoutSession()` in `lib/stripe.ts` using the
-   Stripe SDK (`stripe.checkout.sessions.create`), building Stripe line
-   items from the `CartLineItem[]` passed in.
-3. `app/api/checkout/route.ts` already calls this and redirects the
-   customer to the returned Checkout URL — no other wiring needed.
-4. Add a webhook handler (not included) to confirm payment and trigger
-   fulfillment — that's the right place to call
-   `submitFulfillmentOrder()` from `lib/printify.ts`.
+This is already fully implemented — `lib/stripe.ts` creates a real
+Stripe Checkout Session from the customer's cart (each customization
+becomes its own line item, priced exactly as shown in the cart). To turn
+it on:
+
+1. Add `STRIPE_SECRET_KEY` (and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, used
+   for future Stripe Elements work) in Vercel Project Settings →
+   Environment Variables — never commit these to the repo.
+2. That's it for checkout itself — `app/api/checkout/route.ts` already
+   calls `createCheckoutSession()` and redirects the customer to Stripe's
+   hosted payment page.
+3. Test with Stripe's test mode and its published test card numbers
+   before switching to live keys.
+4. **Still to build:** a webhook handler (`app/api/webhooks/stripe/route.ts`,
+   not included yet) that listens for `checkout.session.completed`,
+   confirms the payment, and then calls `submitFulfillmentOrder()` in
+   `lib/printify.ts` to send the order to print. This is the next piece
+   to add once Printify is connected.
 
 ## Connecting fulfillment (Printify)
 
