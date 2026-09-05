@@ -60,7 +60,8 @@ function getCredentials(): { apiKey: string; shopId: string } {
 async function printifyFetch(
   path: string,
   apiKey: string,
-  init: RequestInit = {}
+  init: RequestInit = {},
+  stepLabel: string = "Printify request"
 ): Promise<any> {
   const res = await fetch(`${PRINTIFY_API_BASE}${path}`, {
     ...init,
@@ -80,10 +81,17 @@ async function printifyFetch(
   }
 
   if (!res.ok) {
-    const message =
-      (body && (body.error || body.message)) ||
-      `Printify request to ${path} failed with status ${res.status}.`;
-    throw new Error(message);
+    // Printify's error responses vary in shape \u2014 sometimes a plain
+    // "error" string, sometimes a nested "errors" object with per-field
+    // validation detail. Surface as much of it as possible so failures
+    // are debuggable instead of showing a bare "Operation failed."
+    const detail =
+      body && typeof body === "object"
+        ? JSON.stringify(body)
+        : String(body ?? "");
+    throw new Error(
+      `${stepLabel} failed (HTTP ${res.status}) at ${path}: ${detail}`
+    );
   }
 
   return body;
@@ -128,13 +136,18 @@ async function uploadSvgToPrintify(
   apiKey: string
 ): Promise<string> {
   const base64 = Buffer.from(svg, "utf-8").toString("base64");
-  const result = await printifyFetch("/uploads/images.json", apiKey, {
-    method: "POST",
-    body: JSON.stringify({
-      file_name: fileName,
-      contents: base64,
-    }),
-  });
+  const result = await printifyFetch(
+    "/uploads/images.json",
+    apiKey,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        file_name: fileName,
+        contents: base64,
+      }),
+    },
+    "Image upload"
+  );
   return result.id as string;
 }
 
@@ -154,41 +167,46 @@ async function createOneOffProduct(
     80
   );
 
-  const result = await printifyFetch(`/shops/${shopId}/products.json`, apiKey, {
-    method: "POST",
-    body: JSON.stringify({
-      title,
-      description: `Custom TAG SAYS. order: ${customization.tagState} TAG. / ${customization.identity}.`,
-      blueprint_id: BLUEPRINT_ID,
-      print_provider_id: PRINT_PROVIDER_ID,
-      variants: [
-        {
-          id: size.printifyVariantId,
-          price: size.priceCents,
-          is_enabled: true,
-        },
-      ],
-      print_areas: [
-        {
-          variant_ids: [size.printifyVariantId],
-          placeholders: [
-            {
-              position: "front",
-              images: [
-                {
-                  id: imageId,
-                  x: 0.5,
-                  y: 0.5,
-                  scale: 1,
-                  angle: 0,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    }),
-  });
+  const result = await printifyFetch(
+    `/shops/${shopId}/products.json`,
+    apiKey,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        title,
+        description: `Custom TAG SAYS. order: ${customization.tagState} TAG. / ${customization.identity}.`,
+        blueprint_id: BLUEPRINT_ID,
+        print_provider_id: PRINT_PROVIDER_ID,
+        variants: [
+          {
+            id: size.printifyVariantId,
+            price: size.priceCents,
+            is_enabled: true,
+          },
+        ],
+        print_areas: [
+          {
+            variant_ids: [size.printifyVariantId],
+            placeholders: [
+              {
+                position: "front",
+                images: [
+                  {
+                    id: imageId,
+                    x: 0.5,
+                    y: 0.5,
+                    scale: 1,
+                    angle: 0,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }),
+    },
+    "Product creation"
+  );
 
   return result.id as string;
 }
@@ -241,33 +259,38 @@ export async function submitFulfillmentOrder(
   const [firstName, ...rest] = request.shippingAddress.name.split(" ");
   const lastName = rest.join(" ") || firstName;
 
-  const order = await printifyFetch(`/shops/${shopId}/orders.json`, apiKey, {
-    method: "POST",
-    body: JSON.stringify({
-      external_id: request.orderId,
-      line_items: [
-        {
-          product_id: productId,
-          variant_id: size.printifyVariantId,
-          quantity: request.quantity,
+  const order = await printifyFetch(
+    `/shops/${shopId}/orders.json`,
+    apiKey,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        external_id: request.orderId,
+        line_items: [
+          {
+            product_id: productId,
+            variant_id: size.printifyVariantId,
+            quantity: request.quantity,
+          },
+        ],
+        shipping_method: 1,
+        send_shipping_notification: true,
+        address_to: {
+          first_name: firstName,
+          last_name: lastName,
+          email: request.shippingAddress.email ?? "orders@tagsays.com",
+          phone: "",
+          country: request.shippingAddress.country,
+          region: request.shippingAddress.state,
+          address1: request.shippingAddress.line1,
+          address2: request.shippingAddress.line2 ?? "",
+          city: request.shippingAddress.city,
+          zip: request.shippingAddress.postalCode,
         },
-      ],
-      shipping_method: 1,
-      send_shipping_notification: true,
-      address_to: {
-        first_name: firstName,
-        last_name: lastName,
-        email: request.shippingAddress.email ?? "orders@tagsays.com",
-        phone: "",
-        country: request.shippingAddress.country,
-        region: request.shippingAddress.state,
-        address1: request.shippingAddress.line1,
-        address2: request.shippingAddress.line2 ?? "",
-        city: request.shippingAddress.city,
-        zip: request.shippingAddress.postalCode,
-      },
-    }),
-  });
+      }),
+    },
+    "Order creation"
+  );
 
   return {
     fulfillmentOrderId: order.id,
