@@ -106,24 +106,57 @@ it on:
    hosted payment page.
 3. Test with Stripe's test mode and its published test card numbers
    before switching to live keys.
-4. **Still to build:** a webhook handler (`app/api/webhooks/stripe/route.ts`,
-   not included yet) that listens for `checkout.session.completed`,
-   confirms the payment, and then calls `submitFulfillmentOrder()` in
-   `lib/printify.ts` to send the order to print. This is the next piece
-   to add once Printify is connected.
 
 ## Connecting fulfillment (Printify)
 
-1. Set `PRINTIFY_API_KEY` and `PRINTIFY_SHOP_ID`.
-2. Implement `generatePrintReadyFile()` in `lib/printify.ts` to render
-   the sticker layout at the required print spec:
-   **3371 × 971 px @ 300 DPI**, PNG/JPG/SVG. The simplest approach is an
-   SVG template mirroring `StickerPreview`'s layout, rendered server-side.
-3. Implement `submitFulfillmentOrder()` to POST the file + shipping
-   address to Printify's Orders API
-   (`POST /v1/shops/{shop_id}/orders.json`).
-4. Add a webhook or polling handler for `getFulfillmentStatus()` to keep
-   order status/tracking up to date.
+This is already fully implemented for your exact Printify catalog
+selection — shop `28824707` ("TAG SAYS Website"), blueprint `598`,
+print provider `73`, with variant IDs already wired to each size in
+`SIZE_OPTIONS` (`lib/constants.ts`). Here's the full flow, in
+`lib/printify.ts`:
+
+1. `generateStickerSvg()` renders the customer's exact tag as an SVG at
+   the correct print resolution for their chosen size.
+2. That SVG is uploaded to Printify's Uploads API.
+3. A one-off product is created in your shop using that image on the
+   correct variant.
+4. An order is placed against that product with the customer's shipping
+   address.
+
+To turn it on:
+
+1. Add `PRINTIFY_API_KEY` and `PRINTIFY_SHOP_ID` (`28824707`) in Vercel
+   Project Settings → Environment Variables.
+2. That's it for the Printify side — the webhook below calls this
+   automatically once a payment succeeds.
+
+If you ever change which Printify blueprint or print provider you use,
+update `BLUEPRINT_ID` / `PRINT_PROVIDER_ID` at the top of
+`lib/printify.ts`, and each size's `printifyVariantId` in
+`lib/constants.ts`.
+
+## Connecting payment → fulfillment (the Stripe webhook)
+
+`app/api/webhooks/stripe/route.ts` is what actually ties a successful
+payment to a real Printify order — fulfillment is only ever triggered
+from here, never from the client, so it can't be spoofed without a real
+charge.
+
+1. Deploy the site with `STRIPE_SECRET_KEY`, `PRINTIFY_API_KEY`, and
+   `PRINTIFY_SHOP_ID` already set (see above).
+2. In the Stripe Dashboard → Developers → Webhooks, click **Add
+   endpoint**.
+3. Endpoint URL: `https://<your-vercel-domain>/api/webhooks/stripe`
+4. Select the event **checkout.session.completed**.
+5. Stripe will show you a **signing secret** (starts with `whsec_...`) —
+   copy it into `STRIPE_WEBHOOK_SECRET` in Vercel's Environment
+   Variables.
+6. Redeploy (any new commit triggers this automatically) so the new
+   environment variable takes effect.
+
+Once all of this is in place, a real (or Stripe test-mode) payment will
+automatically create a Printify order with the customer's exact design,
+size, and shipping address — no manual step required.
 
 Never call any Printify or Stripe function from client components — they
 must only run in API routes / server code, where the secret keys live.
