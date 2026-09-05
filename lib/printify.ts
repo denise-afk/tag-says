@@ -11,11 +11,14 @@
  * Flow for each order line item, per size (see SIZE_OPTIONS in
  * lib/constants.ts for each size's printifyVariantId):
  *   1. Render the customer's exact tag as an SVG at print resolution.
- *   2. Upload that SVG to Printify (Uploads API) \u2192 get an image id.
- *   3. Create a one-off Printify product using that image + variant.
- *   4. Place an order against that product \u2192 get a fulfillment order id.
+ *   2. Rasterize that SVG to a PNG (Printify's upload API rejects raw
+ *      SVG uploads with a generic error, so we convert first).
+ *   3. Upload the PNG to Printify (Uploads API) \u2192 get an image id.
+ *   4. Create a one-off Printify product using that image + variant.
+ *   5. Place an order against that product \u2192 get a fulfillment order id.
  */
 
+import sharp from "sharp";
 import { SizeId, TagCustomization } from "./types";
 import { getSizeOption } from "./constants";
 
@@ -127,15 +130,20 @@ export function generateStickerSvg(customization: TagCustomization): string {
 }
 
 /**
- * Uploads an SVG string to Printify's Uploads API and returns the
- * resulting image id, used later to build a print area.
+ * Uploads the sticker's PNG artwork to Printify's Uploads API and
+ * returns the resulting image id, used later to build a print area.
+ * The SVG is rasterized to PNG first, at its exact print pixel
+ * dimensions, since Printify's uploads endpoint rejects raw SVG.
  */
-async function uploadSvgToPrintify(
-  svg: string,
+async function uploadStickerImageToPrintify(
+  customization: TagCustomization,
   fileName: string,
   apiKey: string
 ): Promise<string> {
-  const base64 = Buffer.from(svg, "utf-8").toString("base64");
+  const svg = generateStickerSvg(customization);
+  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+  const base64 = pngBuffer.toString("base64");
+
   const result = await printifyFetch(
     "/uploads/images.json",
     apiKey,
@@ -245,9 +253,12 @@ export async function submitFulfillmentOrder(
   const { apiKey, shopId } = getCredentials();
   const size = getSizeOption(request.customization.sizeId);
 
-  const svg = generateStickerSvg(request.customization);
-  const fileName = `${request.orderId}-${request.customization.sizeId}.svg`;
-  const imageId = await uploadSvgToPrintify(svg, fileName, apiKey);
+  const fileName = `${request.orderId}-${request.customization.sizeId}.png`;
+  const imageId = await uploadStickerImageToPrintify(
+    request.customization,
+    fileName,
+    apiKey
+  );
 
   const productId = await createOneOffProduct(
     request.customization,
