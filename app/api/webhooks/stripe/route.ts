@@ -69,7 +69,16 @@ export async function POST(req: NextRequest) {
       limit: 100,
     });
 
-    const shipping = session.shipping_details;
+    // Newer Stripe API versions moved the shipping address from a
+    // top-level `shipping_details` field to `collected_information
+    // .shipping_details`. Check both so this works regardless of which
+    // API version your Stripe webhook endpoint is configured to send.
+    const shipping =
+      session.shipping_details ??
+      (session as unknown as {
+        collected_information?: { shipping_details?: Stripe.Checkout.Session.ShippingDetails };
+      }).collected_information?.shipping_details;
+
     if (!shipping?.address) {
       throw new Error(
         `No shipping address on session ${session.id}; cannot fulfill.`
