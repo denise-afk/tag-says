@@ -25,7 +25,12 @@ export function Hero() {
       </div>
 
       <div>
-        <StickerPreview tagState="Georgia" identity="New Yorker" size="large" />
+        <StickerPreview
+          mode="state"
+          lineOneRaw="Georgia"
+          lineTwoRaw="New Yorker"
+          size="large"
+        />
         <p className="mt-3 text-xs text-muted">
           A real example. Yours starts with your own state and story.
         </p>

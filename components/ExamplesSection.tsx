@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { StickerPreview } from "./StickerPreview";
-import { EXAMPLE_TAGS } from "@/lib/constants";
+import { EXAMPLE_TAGS, STATEMENT_EXAMPLE_TAGS } from "@/lib/constants";
 
 export function ExamplesSection() {
   return (
@@ -12,13 +12,28 @@ export function ExamplesSection() {
         <h2 className="font-display font-black uppercase text-3xl sm:text-4xl mt-3">
           Not just states.
         </h2>
+        <p className="mt-3 text-muted max-w-[52ch]">
+          Choose State Tag for the classic plate-and-identity format, or
+          Your Statement for any two lines &mdash; faith, calling, or
+          whatever&apos;s true for you.
+        </p>
 
         <div className="mt-10 grid sm:grid-cols-2 gap-6">
           {EXAMPLE_TAGS.map((example) => (
             <StickerPreview
               key={`${example.state}-${example.identity}`}
-              tagState={example.state}
-              identity={example.identity}
+              mode="state"
+              lineOneRaw={example.state}
+              lineTwoRaw={example.identity}
+              size="medium"
+            />
+          ))}
+          {STATEMENT_EXAMPLE_TAGS.map((example) => (
+            <StickerPreview
+              key={`${example.lineOne}-${example.lineTwo}`}
+              mode="statement"
+              lineOneRaw={example.lineOne}
+              lineTwoRaw={example.lineTwo}
               size="medium"
             />
           ))}

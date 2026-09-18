@@ -4,7 +4,7 @@ import { TagBuilder } from "@/components/TagBuilder";
 export const metadata: Metadata = {
   title: "Create Your Tag | TAG SAYS.",
   description:
-    "Pick your license plate state, tell us who you are, and watch your custom bumper sticker come together in real time.",
+    "Build a State Tag (your plate + your identity) or Your Statement (any two lines \u2014 faith, calling, or whatever's true for you) and watch it come together in real time.",
 };
 
 export default function CreatePage() {

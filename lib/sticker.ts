@@ -1,4 +1,5 @@
-import { IDENTITY_MAX_LENGTH } from "./constants";
+import { IDENTITY_MAX_LENGTH, LINE_ONE_STATEMENT_MAX_LENGTH } from "./constants";
+import { TagCustomization, TagMode } from "./types";
 
 /**
  * Strips anything that isn't plain text: no tags, no scripts, no control
@@ -11,22 +12,46 @@ export function sanitizeIdentityInput(raw: string): string {
   return collapsedSpaces.trimStart();
 }
 
-/** Applies the character limit without cutting mid-word where avoidable. */
+/** Applies a character limit without cutting mid-word where avoidable. */
+export function clampLength(value: string, max: number): string {
+  return value.slice(0, max);
+}
+
+/** @deprecated use clampLength */
 export function clampIdentityLength(
   value: string,
   max: number = IDENTITY_MAX_LENGTH
 ): string {
-  return value.slice(0, max);
+  return clampLength(value, max);
 }
 
-export function formatTagLine(stateName: string): string {
-  return `${stateName.toUpperCase()} TAG.`;
+/**
+ * Line one, formatted for its mode. "state" mode appends " TAG." (e.g.
+ * "Georgia" -> "GEORGIA TAG."); "statement" mode just uppercases and
+ * adds a trailing period (e.g. "Isaiah 6:3" -> "ISAIAH 6:3.").
+ */
+export function formatLineOne(mode: TagMode, raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (mode === "state") return `${trimmed.toUpperCase()} TAG.`;
+  return `${trimmed.toUpperCase()}.`;
 }
 
-export function formatIdentityLine(identity: string): string {
-  const trimmed = identity.trim();
+/** Line two is always free text, always just uppercased with a period. */
+export function formatLineTwo(raw: string): string {
+  const trimmed = raw.trim();
   if (!trimmed) return "";
   return `${trimmed.toUpperCase()}.`;
+}
+
+/** @deprecated use formatLineOne(\"state\", stateName) */
+export function formatTagLine(stateName: string): string {
+  return formatLineOne("state", stateName);
+}
+
+/** @deprecated use formatLineTwo */
+export function formatIdentityLine(identity: string): string {
+  return formatLineTwo(identity);
 }
 
 export interface StickerRender {
@@ -36,26 +61,44 @@ export interface StickerRender {
 }
 
 export function buildStickerRender(
-  stateName: string,
-  identity: string
+  mode: TagMode,
+  lineOneRaw: string,
+  lineTwoRaw: string
 ): StickerRender {
-  const lineOne = stateName ? formatTagLine(stateName) : "";
-  const lineTwo = formatIdentityLine(identity);
+  const lineOne = formatLineOne(mode, lineOneRaw);
+  const lineTwo = formatLineTwo(lineTwoRaw);
   return {
     lineOne,
     lineTwo,
-    isValid: Boolean(stateName) && Boolean(identity.trim()),
+    isValid: Boolean(lineOneRaw.trim()) && Boolean(lineTwoRaw.trim()),
   };
 }
 
+export function buildStickerRenderFromCustomization(
+  customization: TagCustomization
+): StickerRender {
+  return buildStickerRender(
+    customization.mode,
+    customization.lineOneRaw,
+    customization.lineTwoRaw
+  );
+}
+
 /**
- * Rough scale factor so long identity lines shrink instead of overflowing
- * or wrapping awkwardly on the sticker face. Tunable.
+ * Rough scale factor so long lines shrink instead of overflowing or
+ * wrapping awkwardly on the sticker face. Tunable.
  */
-export function identityScaleFactor(identity: string): number {
-  const len = identity.trim().length;
+export function lineScaleFactor(text: string): number {
+  const len = text.trim().length;
   if (len <= 10) return 1;
   if (len <= 16) return 0.85;
   if (len <= 20) return 0.72;
   return 0.62;
 }
+
+/** @deprecated use lineScaleFactor */
+export function identityScaleFactor(identity: string): number {
+  return lineScaleFactor(identity);
+}
+
+export { LINE_ONE_STATEMENT_MAX_LENGTH };

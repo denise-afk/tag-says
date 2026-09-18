@@ -72,8 +72,9 @@ export default function CartPage() {
             <li key={item.id} className="py-6 grid sm:grid-cols-[auto,1fr] gap-5">
               <div className="w-full sm:w-56">
                 <StickerPreview
-                  tagState={item.customization.tagState}
-                  identity={item.customization.identity}
+                  mode={item.customization.mode}
+                  lineOneRaw={item.customization.lineOneRaw}
+                  lineTwoRaw={item.customization.lineTwoRaw}
                   sizeId={item.customization.sizeId}
                   size="medium"
                 />
@@ -85,10 +86,12 @@ export default function CartPage() {
                     {item.productName}
                   </p>
                   <p className="text-sm text-muted mt-1">
-                    Tag: {item.customization.tagState}
+                    {item.customization.mode === "state" ? "Tag" : "Line one"}:{" "}
+                    {item.customization.lineOneRaw}
                   </p>
                   <p className="text-sm text-muted">
-                    Identity: {item.customization.identity}
+                    {item.customization.mode === "state" ? "Identity" : "Line two"}:{" "}
+                    {item.customization.lineTwoRaw}
                   </p>
                   <p className="text-sm text-muted">
                     Size: {getSizeOption(item.customization.sizeId).label}
@@ -102,7 +105,7 @@ export default function CartPage() {
                       onClick={() =>
                         updateQuantity(item.id, Math.max(1, item.quantity - 1))
                       }
-                      aria-label={`Decrease quantity for ${item.customization.identity} tag`}
+                      aria-label={`Decrease quantity for ${item.customization.lineTwoRaw} tag`}
                       className="w-9 h-9 flex items-center justify-center hover:bg-ink hover:text-paper transition-colors"
                     >
                       &minus;
@@ -113,7 +116,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      aria-label={`Increase quantity for ${item.customization.identity} tag`}
+                      aria-label={`Increase quantity for ${item.customization.lineTwoRaw} tag`}
                       className="w-9 h-9 flex items-center justify-center hover:bg-ink hover:text-paper transition-colors"
                     >
                       +

@@ -55,8 +55,9 @@ export async function createCheckoutSession(
             // Checkout Session (see the webhook handler you'll add for
             // step 3 of fulfillment).
             metadata: {
-              tagState: item.customization.tagState,
-              identity: item.customization.identity,
+              mode: item.customization.mode,
+              lineOneRaw: item.customization.lineOneRaw,
+              lineTwoRaw: item.customization.lineTwoRaw,
               sizeId: item.customization.sizeId,
             },
           },

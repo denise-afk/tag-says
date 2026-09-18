@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { submitFulfillmentOrder } from "@/lib/printify";
-import { SizeId } from "@/lib/types";
+import { SizeId, TagMode } from "@/lib/types";
 
 /**
  * POST /api/webhooks/stripe
@@ -100,7 +100,12 @@ export async function POST(req: NextRequest) {
     for (const item of lineItems.data) {
       const product = item.price?.product as Stripe.Product | undefined;
       const metadata = product?.metadata;
-      if (!metadata?.tagState || !metadata?.identity || !metadata?.sizeId) {
+      if (
+        !metadata?.lineOneRaw ||
+        !metadata?.lineTwoRaw ||
+        !metadata?.sizeId ||
+        !metadata?.mode
+      ) {
         // Not a TAG SAYS. custom line item (shouldn't happen) \u2014 skip it
         // rather than fail the whole order.
         continue;
@@ -109,8 +114,9 @@ export async function POST(req: NextRequest) {
       const result = await submitFulfillmentOrder({
         orderId: `${session.id}-${item.id}`,
         customization: {
-          tagState: metadata.tagState,
-          identity: metadata.identity,
+          mode: metadata.mode as TagMode,
+          lineOneRaw: metadata.lineOneRaw,
+          lineTwoRaw: metadata.lineTwoRaw,
           sizeId: metadata.sizeId as SizeId,
         },
         quantity: item.quantity ?? 1,

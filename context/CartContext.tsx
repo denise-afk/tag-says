@@ -10,7 +10,7 @@ import {
 } from "react";
 import { CartLineItem, TagCustomization } from "@/lib/types";
 import { getSizeOption } from "@/lib/constants";
-import { buildStickerRender } from "@/lib/sticker";
+import { buildStickerRenderFromCustomization } from "@/lib/sticker";
 
 const STORAGE_KEY = "tagsays:cart:v1";
 
@@ -57,10 +57,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, isHydrated]);
 
   const addItem = (customization: TagCustomization, quantity: number) => {
-    const render = buildStickerRender(
-      customization.tagState,
-      customization.identity
-    );
+    const render = buildStickerRenderFromCustomization(customization);
     if (!render.isValid) return;
 
     const newItem: CartLineItem = {

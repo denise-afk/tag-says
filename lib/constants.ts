@@ -39,7 +39,7 @@ export const SIZE_OPTIONS: SizeOption[] = [
     widthIn: 7.5,
     heightIn: 3.75,
     dpi: 300,
-    priceCents: 700,
+    priceCents: 1900,
     printifyVariantId: 71929,
   },
   {
@@ -48,7 +48,7 @@ export const SIZE_OPTIONS: SizeOption[] = [
     widthIn: 11,
     heightIn: 3,
     dpi: 300,
-    priceCents: 900,
+    priceCents: 2000,
     printifyVariantId: 71930,
   },
   {
@@ -57,7 +57,7 @@ export const SIZE_OPTIONS: SizeOption[] = [
     widthIn: 15,
     heightIn: 3.75,
     dpi: 300,
-    priceCents: 1200,
+    priceCents: 2200,
     printifyVariantId: 71931,
   },
 ];
@@ -78,13 +78,19 @@ export const PRICING = {
 
 export const IDENTITY_MAX_LENGTH = 24;
 export const IDENTITY_WARN_LENGTH = 16;
+/** Line one in Statement mode is free text too, but kept shorter since
+ * it's the smaller, contextual line (mirrors how state names read). */
+export const LINE_ONE_STATEMENT_MAX_LENGTH = 20;
 
 export const EXAMPLE_TAGS: { state: string; identity: string }[] = [
   { state: "Georgia", identity: "New Yorker" },
   { state: "Georgia", identity: "Jamaican" },
   { state: "Texas", identity: "Chicago Born" },
   { state: "Florida", identity: "Haitian Made" },
-  { state: "California", identity: "Brooklyn Raised" },
+];
+
+export const STATEMENT_EXAMPLE_TAGS: { lineOne: string; lineTwo: string }[] = [
+  { lineOne: "Isaiah 6:3", lineTwo: "Disciple" },
 ];
 
 export const HOW_IT_WORKS_STEPS = [
@@ -110,6 +116,11 @@ export const FAQ_ITEMS: FaqItem[] = [
     question: "What can I put on my sticker?",
     answer:
       "Any city, state, country, culture, nationality, region, or hometown that feels like who you are \u2014 New Yorker, Jamaican, Chicago Born, Haitian Made, and everything in between.",
+  },
+  {
+    question: "What's the difference between State Tag and Your Statement?",
+    answer:
+      "State Tag is the classic format: your license plate state on the small line, your identity on the bold line. Your Statement opens both lines to anything you want \u2014 a scripture reference and a calling, a motto, or any two lines that are true for you.",
   },
   {
     question: "Can I use a country instead of a state?",

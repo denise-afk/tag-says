@@ -14,7 +14,7 @@ export default function CheckoutPage({
       </h1>
       <p className="mt-4 text-muted">
         {isSuccess
-          ? "This confirmation page renders once Stripe is connected and a real payment succeeds."
+          ? "Thanks for your order \u2014 your custom tag is on its way to print. You'll get a shipping update once it's on the road to you."
           : "Payment processing isn't connected yet. See lib/stripe.ts and the README for setup steps."}
       </p>
       <Link

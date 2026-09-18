@@ -1,12 +1,13 @@
 "use client";
 
-import { formatTagLine, formatIdentityLine, identityScaleFactor } from "@/lib/sticker";
+import { formatLineOne, formatLineTwo, lineScaleFactor } from "@/lib/sticker";
 import { getSizeOption } from "@/lib/constants";
-import { SizeId } from "@/lib/types";
+import { SizeId, TagMode } from "@/lib/types";
 
 interface StickerPreviewProps {
-  tagState: string;
-  identity: string;
+  mode: TagMode;
+  lineOneRaw: string;
+  lineTwoRaw: string;
   sizeId?: SizeId;
   /** Smaller variant for grids/examples vs. the large builder preview. */
   size?: "large" | "medium";
@@ -19,16 +20,24 @@ interface StickerPreviewProps {
  * is proportionally true to what gets printed.
  */
 export function StickerPreview({
-  tagState,
-  identity,
+  mode,
+  lineOneRaw,
+  lineTwoRaw,
   sizeId = "classic",
   size = "large",
 }: StickerPreviewProps) {
-  const lineOne = tagState ? formatTagLine(tagState) : "YOUR STATE TAG.";
-  const lineTwo = identity.trim() ? formatIdentityLine(identity) : "WHO YOU ARE.";
-  const scale = identity.trim() ? identityScaleFactor(identity) : 1;
+  const placeholderOne = mode === "state" ? "YOUR STATE TAG." : "LINE ONE.";
+  const placeholderTwo = mode === "state" ? "WHO YOU ARE." : "LINE TWO.";
 
-  const isPlaceholder = !tagState || !identity.trim();
+  const lineOne = lineOneRaw.trim()
+    ? formatLineOne(mode, lineOneRaw)
+    : placeholderOne;
+  const lineTwo = lineTwoRaw.trim()
+    ? formatLineTwo(lineTwoRaw)
+    : placeholderTwo;
+  const scale = lineTwoRaw.trim() ? lineScaleFactor(lineTwoRaw) : 1;
+
+  const isPlaceholder = !lineOneRaw.trim() || !lineTwoRaw.trim();
   const sizeOption = getSizeOption(sizeId);
   const aspectRatio = `${sizeOption.widthIn} / ${sizeOption.heightIn}`;
 

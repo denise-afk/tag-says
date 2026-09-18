@@ -21,6 +21,7 @@
 import sharp from "sharp";
 import { SizeId, TagCustomization } from "./types";
 import { getSizeOption } from "./constants";
+import { formatLineOne, formatLineTwo } from "./sticker";
 
 const PRINTIFY_API_BASE = "https://api.printify.com/v1";
 const BLUEPRINT_ID = 598;
@@ -106,8 +107,8 @@ async function printifyFetch(
  */
 export function generateStickerSvg(customization: TagCustomization): string {
   const spec = getPrintSpec(customization.sizeId);
-  const lineOne = `${customization.tagState.toUpperCase()} TAG.`;
-  const lineTwo = `${customization.identity.trim().toUpperCase()}.`;
+  const lineOne = formatLineOne(customization.mode, customization.lineOneRaw);
+  const lineTwo = formatLineTwo(customization.lineTwoRaw);
 
   const marginX = Math.round(spec.widthPx * 0.06);
   const line1Size = Math.round(spec.heightPx * 0.14);
@@ -170,7 +171,7 @@ async function createOneOffProduct(
   shopId: string
 ): Promise<string> {
   const size = getSizeOption(customization.sizeId);
-  const title = `TAG SAYS \u2014 ${customization.tagState} / ${customization.identity}`.slice(
+  const title = `TAG SAYS \u2014 ${customization.lineOneRaw} / ${customization.lineTwoRaw}`.slice(
     0,
     80
   );
@@ -182,7 +183,7 @@ async function createOneOffProduct(
       method: "POST",
       body: JSON.stringify({
         title,
-        description: `Custom TAG SAYS. order: ${customization.tagState} TAG. / ${customization.identity}.`,
+        description: `Custom TAG SAYS. order: ${formatLineOne(customization.mode, customization.lineOneRaw)} ${formatLineTwo(customization.lineTwoRaw)}`,
         blueprint_id: BLUEPRINT_ID,
         print_provider_id: PRINT_PROVIDER_ID,
         variants: [
