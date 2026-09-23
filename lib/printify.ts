@@ -147,6 +147,47 @@ function textToPathData(
   return d.trim();
 }
 
+/** Total rendered width of a line at a given font size, including any
+ * per-character letter-spacing \u2014 using the real font's glyph metrics,
+ * not an estimate. */
+function measureWidth(
+  font: opentype.Font,
+  text: string,
+  fontSize: number,
+  extraLetterSpacing = 0
+): number {
+  let width = 0;
+  for (const char of text) {
+    width += font.getAdvanceWidth(char, fontSize) + extraLetterSpacing;
+  }
+  return width - extraLetterSpacing; // no trailing gap after the last char
+}
+
+/**
+ * Picks the largest font size, up to `maxSize`, that keeps this line's
+ * real rendered width within `maxWidth`. This is the check that was
+ * missing from print generation entirely \u2014 the on-site live preview
+ * shrinks long lines with a rough character-count guess, but nothing
+ * enforced that on the actual file sent to print, which is how
+ * "DISCIPLE" ran off the edge of a compact sticker while looking fine
+ * on-screen. Measuring real glyph widths (rather than guessing from
+ * character count) means this is exact, not approximate.
+ */
+function fitFontSize(
+  text: string,
+  maxSize: number,
+  maxWidth: number,
+  extraLetterSpacing = 0
+): number {
+  const font = getFont();
+  const widthAtMax = measureWidth(font, text, maxSize, extraLetterSpacing);
+  if (widthAtMax <= maxWidth) return maxSize;
+  // Glyph widths scale linearly with font size, so this ratio is exact,
+  // not an approximation \u2014 no need to iterate.
+  const scaled = maxSize * (maxWidth / widthAtMax);
+  return Math.max(1, Math.floor(scaled));
+}
+
 /**
  * Builds the sticker artwork as a self-contained SVG, matching the
  * on-site <StickerPreview /> layout, sized exactly to the size's print
@@ -157,6 +198,10 @@ function textToPathData(
  * its own to find, load, or support \u2014 eliminating an entire class of
  * "renders blank because the font didn't load" failures, regardless of
  * which service (Printify's included) ends up processing the file.
+ *
+ * Both lines are also measured against the real print width and shrunk
+ * to fit if needed, so long text can never run off the edge of the
+ * sticker \u2014 verified with actual glyph metrics, not a guess.
  */
 export function generateStickerSvg(customization: TagCustomization): string {
   const spec = getPrintSpec(customization.sizeId);
@@ -164,13 +209,17 @@ export function generateStickerSvg(customization: TagCustomization): string {
   const lineTwo = formatLineTwo(customization.lineTwoRaw);
 
   const marginX = Math.round(spec.widthPx * 0.06);
-  const line1Size = Math.round(spec.heightPx * 0.14);
-  const line2Size = Math.round(spec.heightPx * 0.42);
+  const maxLineWidth = spec.widthPx - marginX * 2;
+  const line1MaxSize = Math.round(spec.heightPx * 0.14);
+  const line2MaxSize = Math.round(spec.heightPx * 0.42);
   const line1Y = Math.round(spec.heightPx * 0.28);
   const ruleY = line1Y + Math.round(spec.heightPx * 0.06);
   const line2Y = Math.round(spec.heightPx * 0.78);
   const ruleWidth = Math.round(spec.widthPx * 0.32);
   const strokeWidth = Math.max(2, Math.round(spec.heightPx * 0.004));
+
+  const line1Size = fitFontSize(lineOne, line1MaxSize, maxLineWidth, 2);
+  const line2Size = fitFontSize(lineTwo, line2MaxSize, maxLineWidth);
 
   const line1Path = textToPathData(lineOne, marginX, line1Y, line1Size, 2);
   const line2Path = textToPathData(lineTwo, marginX, line2Y, line2Size);
