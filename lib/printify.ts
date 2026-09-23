@@ -19,6 +19,7 @@
  */
 
 import sharp from "sharp";
+import * as opentype from "opentype.js";
 import { SizeId, TagCustomization } from "./types";
 import { getSizeOption } from "./constants";
 import { formatLineOne, formatLineTwo } from "./sticker";
@@ -102,9 +103,60 @@ async function printifyFetch(
   return body;
 }
 
+let cachedFont: opentype.Font | null = null;
+
 /**
- * Builds the sticker artwork as an SVG string, matching the on-site
- * <StickerPreview /> layout, sized exactly to the size's print spec.
+ * Loads the embedded font once per process and caches it. Using
+ * opentype.js to parse it \u2014 rather than handing the font to an SVG
+ * renderer via @font-face \u2014 means WE control exactly how each letter
+ * becomes geometry, instead of relying on whatever SVG/font engine a
+ * given server happens to have.
+ */
+function getFont(): opentype.Font {
+  if (cachedFont) return cachedFont;
+  const buffer = Buffer.from(STICKER_FONT_BASE64, "base64");
+  const arrayBuffer = buffer.buffer.slice(
+    buffer.byteOffset,
+    buffer.byteOffset + buffer.byteLength
+  );
+  cachedFont = opentype.parse(arrayBuffer as ArrayBuffer);
+  return cachedFont;
+}
+
+/**
+ * Converts a line of text into a single SVG <path> string of solid
+ * vector shapes \u2014 no font reference, no text element, nothing for a
+ * renderer to interpret at draw time. (x, y) is the left end of the
+ * text baseline, matching where SVG <text> would have sat.
+ */
+function textToPathData(
+  text: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  extraLetterSpacing = 0
+): string {
+  const font = getFont();
+  let cursorX = x;
+  let d = "";
+  for (const char of text) {
+    const glyphPath = font.getPath(char, cursorX, y, fontSize);
+    d += glyphPath.toPathData(2) + " ";
+    cursorX += font.getAdvanceWidth(char, fontSize) + extraLetterSpacing;
+  }
+  return d.trim();
+}
+
+/**
+ * Builds the sticker artwork as a self-contained SVG, matching the
+ * on-site <StickerPreview /> layout, sized exactly to the size's print
+ * spec. Every letter is pre-converted to solid vector outlines (see
+ * textToPathData above) rather than left as an SVG <text> element with
+ * a referenced font. That distinction matters: a server rasterizing
+ * this file only needs to fill in shapes it's handed, with no font of
+ * its own to find, load, or support \u2014 eliminating an entire class of
+ * "renders blank because the font didn't load" failures, regardless of
+ * which service (Printify's included) ends up processing the file.
  */
 export function generateStickerSvg(customization: TagCustomization): string {
   const spec = getPrintSpec(customization.sizeId);
@@ -120,31 +172,14 @@ export function generateStickerSvg(customization: TagCustomization): string {
   const ruleWidth = Math.round(spec.widthPx * 0.32);
   const strokeWidth = Math.max(2, Math.round(spec.heightPx * 0.004));
 
-  const escape = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const line1Path = textToPathData(lineOne, marginX, line1Y, line1Size, 2);
+  const line2Path = textToPathData(lineTwo, marginX, line2Y, line2Size);
 
-  // The font is embedded directly in the SVG (see lib/font-data.ts) rather
-  // than referenced by name. Print/upload pipelines (Printify's included)
-  // often run on servers with no system fonts installed at all \u2014
-  // referencing "Arial" or "sans-serif" there silently renders empty
-  // missing-glyph boxes instead of real letters, which is exactly what
-  // made early stickers look blank. Embedding guarantees the same
-  // typeface renders correctly everywhere, every time.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.widthPx}" height="${spec.heightPx}" viewBox="0 0 ${spec.widthPx} ${spec.heightPx}">
-<defs>
-<style>
-@font-face {
-  font-family: "StickerFont";
-  src: url(data:font/truetype;charset=utf-8;base64,${STICKER_FONT_BASE64}) format("truetype");
-  font-weight: 400 900;
-}
-text { font-family: "StickerFont", sans-serif; }
-</style>
-</defs>
 <rect x="0" y="0" width="${spec.widthPx}" height="${spec.heightPx}" fill="#ffffff" stroke="#0a0a0a" stroke-width="${strokeWidth}"/>
-<text x="${marginX}" y="${line1Y}" font-weight="700" font-size="${line1Size}" fill="rgba(10,10,10,0.7)" letter-spacing="1">${escape(lineOne)}</text>
-<line x1="${marginX}" y1="${ruleY}" x2="${marginX + ruleWidth}" y2="${ruleY}" stroke="rgba(10,10,10,0.6)" stroke-width="${strokeWidth}"/>
-<text x="${marginX}" y="${line2Y}" font-weight="900" font-size="${line2Size}" fill="#0a0a0a">${escape(lineTwo)}</text>
+<path d="${line1Path}" fill="#0a0a0a" fill-opacity="0.7"/>
+<line x1="${marginX}" y1="${ruleY}" x2="${marginX + ruleWidth}" y2="${ruleY}" stroke="#0a0a0a" stroke-opacity="0.6" stroke-width="${strokeWidth}"/>
+<path d="${line2Path}" fill="#0a0a0a"/>
 </svg>`;
 }
 
