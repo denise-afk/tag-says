@@ -140,12 +140,12 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Are the bumper stickers weather resistant?",
     answer:
-      "Material and durability specs will be published here once fulfillment is finalized.",
+      "Yes. Every tag is printed on premium water-resistant vinyl rated for 5+ years outdoors, finished with a matte UV-protective laminate and a strong waterproof adhesive \u2014 built to hold up through sun, rain, and road grime.",
   },
   {
     question: "How long does shipping take?",
     answer:
-      "Shipping times will be published here once our fulfillment partner is connected.",
+      "Most orders arrive within about 5\u20138 business days total: 2\u20133 business days to print your custom design, plus roughly 3\u20135 business days for standard U.S. shipping.",
   },
   {
     question: "Can I preview my sticker before purchasing?",

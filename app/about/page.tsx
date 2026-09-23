@@ -17,10 +17,10 @@ export default function AboutPage() {
           </h2>
           <p className="mt-4 text-muted">
             Reach out at{" "}
-            <a href="mailto:hello@tagsays.com" className="underline underline-offset-2">
-              hello@tagsays.com
-            </a>{" "}
-            &mdash; update this address once your domain and inbox are live.
+            <a href="mailto:hello@mytagsays.com" className="underline underline-offset-2">
+              hello@mytagsays.com
+            </a>
+            .
           </p>
         </div>
       </section>

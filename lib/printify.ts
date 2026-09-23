@@ -22,6 +22,7 @@ import sharp from "sharp";
 import { SizeId, TagCustomization } from "./types";
 import { getSizeOption } from "./constants";
 import { formatLineOne, formatLineTwo } from "./sticker";
+import { STICKER_FONT_BASE64 } from "./font-data";
 
 const PRINTIFY_API_BASE = "https://api.printify.com/v1";
 const BLUEPRINT_ID = 598;
@@ -122,11 +123,28 @@ export function generateStickerSvg(customization: TagCustomization): string {
   const escape = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+  // The font is embedded directly in the SVG (see lib/font-data.ts) rather
+  // than referenced by name. Print/upload pipelines (Printify's included)
+  // often run on servers with no system fonts installed at all \u2014
+  // referencing "Arial" or "sans-serif" there silently renders empty
+  // missing-glyph boxes instead of real letters, which is exactly what
+  // made early stickers look blank. Embedding guarantees the same
+  // typeface renders correctly everywhere, every time.
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.widthPx}" height="${spec.heightPx}" viewBox="0 0 ${spec.widthPx} ${spec.heightPx}">
+<defs>
+<style>
+@font-face {
+  font-family: "StickerFont";
+  src: url(data:font/truetype;charset=utf-8;base64,${STICKER_FONT_BASE64}) format("truetype");
+  font-weight: 400 900;
+}
+text { font-family: "StickerFont", sans-serif; }
+</style>
+</defs>
 <rect x="0" y="0" width="${spec.widthPx}" height="${spec.heightPx}" fill="#ffffff" stroke="#0a0a0a" stroke-width="${strokeWidth}"/>
-<text x="${marginX}" y="${line1Y}" font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="${line1Size}" fill="rgba(10,10,10,0.7)" letter-spacing="1">${escape(lineOne)}</text>
+<text x="${marginX}" y="${line1Y}" font-weight="700" font-size="${line1Size}" fill="rgba(10,10,10,0.7)" letter-spacing="1">${escape(lineOne)}</text>
 <line x1="${marginX}" y1="${ruleY}" x2="${marginX + ruleWidth}" y2="${ruleY}" stroke="rgba(10,10,10,0.6)" stroke-width="${strokeWidth}"/>
-<text x="${marginX}" y="${line2Y}" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="${line2Size}" fill="#0a0a0a">${escape(lineTwo)}</text>
+<text x="${marginX}" y="${line2Y}" font-weight="900" font-size="${line2Size}" fill="#0a0a0a">${escape(lineTwo)}</text>
 </svg>`;
 }
 
