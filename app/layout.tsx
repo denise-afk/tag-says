@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MetaPixel } from "@/components/MetaPixel";
 import { SITE } from "@/lib/constants";
 
 const barlowCondensed = Barlow_Condensed({
@@ -50,6 +51,7 @@ export default function RootLayout({
           <main id="main">{children}</main>
           <Footer />
         </CartProvider>
+        <MetaPixel />
       </body>
     </html>
   );

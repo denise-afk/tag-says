@@ -23,7 +23,9 @@ export async function POST(req: NextRequest) {
     const origin = req.nextUrl.origin;
     const session = await createCheckoutSession({
       lineItems: body.lineItems,
-      successUrl: `${origin}/checkout?status=success`,
+      // Stripe fills in {CHECKOUT_SESSION_ID}; the success page uses it to
+      // report the real order total to the Meta Pixel.
+      successUrl: `${origin}/checkout?status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${origin}/cart`,
     });
 

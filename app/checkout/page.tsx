@@ -1,14 +1,28 @@
 import Link from "next/link";
+import { PurchaseTracker } from "@/components/PurchaseTracker";
+import { getPaidSessionSummary } from "@/lib/stripe";
 
-export default function CheckoutPage({
+export default async function CheckoutPage({
   searchParams,
 }: {
-  searchParams: { status?: string };
+  searchParams: { status?: string; session_id?: string };
 }) {
   const isSuccess = searchParams.status === "success";
+  const paid =
+    isSuccess && searchParams.session_id
+      ? await getPaidSessionSummary(searchParams.session_id)
+      : null;
 
   return (
     <section className="mx-auto max-w-content px-5 sm:px-8 py-20 text-center max-w-[60ch] mx-auto">
+      {paid && (
+        <PurchaseTracker
+          sessionId={paid.id}
+          totalCents={paid.totalCents}
+          currency={paid.currency}
+          itemCount={paid.itemCount}
+        />
+      )}
       <h1 className="font-display font-black uppercase text-3xl sm:text-4xl">
         {isSuccess ? "Order received." : "Checkout"}
       </h1>

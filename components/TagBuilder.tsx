@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { US_STATES } from "@/lib/states";
 import { StickerPreview } from "./StickerPreview";
@@ -19,6 +19,8 @@ import {
 } from "@/lib/constants";
 import { SizeId, TagMode } from "@/lib/types";
 import { useCart } from "@/context/CartContext";
+import { BUNDLE, unitPriceCents } from "@/lib/pricing";
+import { trackPixel } from "@/lib/metaPixel";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
@@ -95,8 +97,15 @@ export function TagBuilder() {
     setJustAdded(true);
   };
 
-  const unitPrice = formatPrice(selectedSize.priceCents);
-  const linePrice = formatPrice(selectedSize.priceCents * quantity);
+  // Bundle pricing kicks in at 2+ tags of this design; mixed designs get
+  // it in the cart too.
+  const effectiveUnitCents = unitPriceCents(sizeId, quantity);
+  const unitPrice = formatPrice(effectiveUnitCents);
+  const linePrice = formatPrice(effectiveUnitCents * quantity);
+
+  useEffect(() => {
+    trackPixel("ViewContent", { content_name: "Create Your Tag", content_type: "product" });
+  }, []);
 
   return (
     <div>
@@ -337,6 +346,7 @@ export function TagBuilder() {
                   <p className="text-xs text-muted">
                     {unitPrice} each &middot; {selectedSize.label}
                   </p>
+                  <p className="text-xs font-semibold mt-1">{BUNDLE.label}</p>
                 </div>
               </div>
 

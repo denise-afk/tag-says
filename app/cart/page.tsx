@@ -5,20 +5,35 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { StickerPreview } from "@/components/StickerPreview";
 import { getSizeOption } from "@/lib/constants";
+import { BUNDLE } from "@/lib/pricing";
+import { trackPixel } from "@/lib/metaPixel";
 
 function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
 export default function CartPage() {
-  const { items, subtotalCents, updateQuantity, removeItem, isHydrated } =
-    useCart();
+  const {
+    items,
+    itemCount,
+    subtotalCents,
+    bundleSavingsCents,
+    totalCents,
+    updateQuantity,
+    removeItem,
+    isHydrated,
+  } = useCart();
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCheckout = async () => {
     setCheckoutError(null);
     setIsSubmitting(true);
+    trackPixel("InitiateCheckout", {
+      value: totalCents / 100,
+      currency: "USD",
+      num_items: itemCount,
+    });
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -141,12 +156,29 @@ export default function CartPage() {
         </ul>
 
         <div className="border border-ink p-6 h-fit">
-          <div className="flex items-center justify-between font-display font-semibold uppercase text-sm mb-4">
+          <div className="flex items-center justify-between font-display font-semibold uppercase text-sm mb-2">
             <span>Subtotal</span>
             <span>{formatPrice(subtotalCents)}</span>
           </div>
+          {bundleSavingsCents > 0 ? (
+            <div className="flex items-center justify-between text-sm mb-2">
+              <span>Bundle savings (2+ tags)</span>
+              <span>&minus;{formatPrice(bundleSavingsCents)}</span>
+            </div>
+          ) : (
+            <p className="text-sm mb-2 border border-ink px-3 py-2">
+              {BUNDLE.label}.{" "}
+              <Link href="/create" className="font-semibold underline underline-offset-2">
+                Add another tag
+              </Link>
+            </p>
+          )}
+          <div className="flex items-center justify-between font-display font-semibold uppercase text-sm mb-4 pt-2 border-t border-hairline">
+            <span>Total</span>
+            <span>{formatPrice(totalCents)}</span>
+          </div>
           <p className="text-xs text-muted mb-6">
-            Shipping and taxes calculated at checkout.
+            Shipping and taxes calculated at checkout. Have a promo code? Enter it on the next page.
           </p>
           <button
             type="button"

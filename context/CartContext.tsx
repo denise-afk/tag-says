@@ -11,13 +11,20 @@ import {
 import { CartLineItem, TagCustomization } from "@/lib/types";
 import { getSizeOption } from "@/lib/constants";
 import { buildStickerRenderFromCustomization } from "@/lib/sticker";
+import { bundleDiscountPerTagCents } from "@/lib/pricing";
+import { trackPixel } from "@/lib/metaPixel";
 
 const STORAGE_KEY = "tagsays:cart:v1";
 
 interface CartContextValue {
   items: CartLineItem[];
   itemCount: number;
+  /** Before the bundle deal. */
   subtotalCents: number;
+  /** Bundle savings across the whole cart (0 with fewer than 2 tags). */
+  bundleSavingsCents: number;
+  /** What the customer pays before shipping/tax/promo codes. */
+  totalCents: number;
   addItem: (customization: TagCustomization, quantity: number) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
@@ -75,6 +82,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Every customized item is distinct — never merged with another line,
     // even if two items happen to share the same state/identity pair.
     setItems((prev) => [...prev, newItem]);
+    trackPixel("AddToCart", {
+      value: (newItem.unitPriceCents * newItem.quantity) / 100,
+      currency: "USD",
+      content_name: `${render.lineOne} / ${render.lineTwo}`,
+      contents: [{ id: customization.sizeId, quantity: newItem.quantity }],
+      content_type: "product",
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -105,12 +119,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [items]
   );
 
+  const bundleSavingsCents = bundleDiscountPerTagCents(itemCount) * itemCount;
+  const totalCents = subtotalCents - bundleSavingsCents;
+
   return (
     <CartContext.Provider
       value={{
         items,
         itemCount,
         subtotalCents,
+        bundleSavingsCents,
+        totalCents,
         addItem,
         updateQuantity,
         removeItem,

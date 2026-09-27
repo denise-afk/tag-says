@@ -10,7 +10,10 @@
 
 import Stripe from "stripe";
 import { CartLineItem } from "./types";
-import { getSizeOption } from "./constants";
+import { SIZE_OPTIONS, getSizeOption } from "./constants";
+import { unitPriceCents } from "./pricing";
+
+const MAX_QUANTITY_PER_LINE = 50;
 
 export interface CheckoutSessionRequest {
   lineItems: CartLineItem[];
@@ -39,6 +42,18 @@ export async function createCheckoutSession(
 ): Promise<CheckoutSessionResult> {
   const stripe = getStripeClient();
 
+  // Never trust prices or quantities sent from the browser: validate
+  // them here and price every tag from its size (plus the bundle deal).
+  for (const item of request.lineItems) {
+    if (!SIZE_OPTIONS.some((size) => size.id === item.customization?.sizeId)) {
+      throw new Error("Unknown sticker size.");
+    }
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY_PER_LINE) {
+      throw new Error("Invalid quantity.");
+    }
+  }
+  const totalQuantity = request.lineItems.reduce((sum, item) => sum + item.quantity, 0);
+
   const stripeLineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
     request.lineItems.map((item) => {
       const sizeLabel = getSizeOption(item.customization.sizeId).label;
@@ -46,7 +61,7 @@ export async function createCheckoutSession(
         quantity: item.quantity,
         price_data: {
           currency: "usd",
-          unit_amount: item.unitPriceCents,
+          unit_amount: unitPriceCents(item.customization.sizeId, totalQuantity),
           product_data: {
             name: `${item.productName} \u2014 ${item.renderedLineOne} / ${item.renderedLineTwo}`,
             description: `Size: ${sizeLabel}`,
@@ -73,6 +88,9 @@ export async function createCheckoutSession(
     shipping_address_collection: {
       allowed_countries: ["US"],
     },
+    // Shows a "promotion code" field; create codes (e.g. FIRSTTAG) in the
+    // Stripe Dashboard → Product catalog → Coupons — no code change needed.
+    allow_promotion_codes: true,
   });
 
   if (!session.url) {
@@ -80,4 +98,30 @@ export async function createCheckoutSession(
   }
 
   return { sessionId: session.id, url: session.url };
+}
+
+/**
+ * Looks up a finished Checkout Session so the success page can report the
+ * real, paid order total (after bundle + promo codes) to the Meta Pixel.
+ * Returns null if Stripe isn't configured, the id is bogus, or it's unpaid.
+ */
+export async function getPaidSessionSummary(
+  sessionId: string
+): Promise<{ id: string; totalCents: number; currency: string; itemCount: number } | null> {
+  if (!process.env.STRIPE_SECRET_KEY || !sessionId.startsWith("cs_")) return null;
+  try {
+    const stripe = getStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["line_items"],
+    });
+    if (session.payment_status !== "paid") return null;
+    return {
+      id: session.id,
+      totalCents: session.amount_total ?? 0,
+      currency: (session.currency ?? "usd").toUpperCase(),
+      itemCount: (session.line_items?.data ?? []).reduce((sum, li) => sum + (li.quantity ?? 0), 0),
+    };
+  } catch {
+    return null;
+  }
 }
