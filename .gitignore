@@ -1,0 +1,28 @@
+# secrets
+.env
+.env*.local
+
+# dependencies and build output
+node_modules/
+.next/
+out/
+tsconfig.tsbuildinfo
+
+# local / OS
+.DS_Store
+.claude/
+.venv/
+
+# marketing media and scripts kept locally (not part of the website)
+*.mp4
+*.mov
+*.m4a
+commercial-assets/
+cframes/
+frames/
+make_*.py
+/*.png
+tagsays-social*/
+tagsays-stories/
+*.zip
+tagsays-captions.txt

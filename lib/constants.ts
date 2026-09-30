@@ -31,6 +31,13 @@ export interface SizeOption {
   dpi: number;
   priceCents: number;
   printifyVariantId: number;
+  /**
+   * Printify's full print area for this variant, in pixels. It is larger
+   * than the finished magnet (the extra is bleed that gets trimmed), so
+   * the artwork is centered on the trim size inside this canvas.
+   */
+  printAreaWidthPx: number;
+  printAreaHeightPx: number;
 }
 
 export const SIZE_OPTIONS: SizeOption[] = [
@@ -42,6 +49,8 @@ export const SIZE_OPTIONS: SizeOption[] = [
     dpi: 300,
     priceCents: 1900,
     printifyVariantId: 105505,
+    printAreaWidthPx: 2475,
+    printAreaHeightPx: 1575,
   },
   {
     id: "classic",
@@ -51,6 +60,8 @@ export const SIZE_OPTIONS: SizeOption[] = [
     dpi: 300,
     priceCents: 2000,
     printifyVariantId: 105497,
+    printAreaWidthPx: 3150,
+    printAreaHeightPx: 1050,
   },
 ];
 

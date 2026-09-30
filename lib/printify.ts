@@ -33,9 +33,13 @@ const PRINT_PROVIDER_ID = 28;
 export const PRINT_FORMATS = ["png", "jpg", "svg"] as const;
 
 export interface PrintSpec {
+  /** Finished (trimmed) magnet size, in pixels. The design is laid out in this space. */
   widthPx: number;
   heightPx: number;
   dpi: number;
+  /** Printify's full print area (trim + bleed), in pixels. */
+  canvasWidthPx: number;
+  canvasHeightPx: number;
 }
 
 /**
@@ -48,6 +52,8 @@ export function getPrintSpec(sizeId: SizeId): PrintSpec {
     widthPx: Math.round(size.widthIn * size.dpi),
     heightPx: Math.round(size.heightIn * size.dpi),
     dpi: size.dpi,
+    canvasWidthPx: size.printAreaWidthPx,
+    canvasHeightPx: size.printAreaHeightPx,
   };
 }
 
@@ -241,11 +247,22 @@ export function generateStickerSvg(customization: TagCustomization): string {
   const line1Path = textToPathData(lineOne, marginX, line1Y, line1Size, 2);
   const line2Path = textToPathData(lineTwo, marginX, line2Y, line2Size);
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.widthPx}" height="${spec.heightPx}" viewBox="0 0 ${spec.widthPx} ${spec.heightPx}">
-<rect x="0" y="0" width="${spec.widthPx}" height="${spec.heightPx}" fill="#ffffff" stroke="#0a0a0a" stroke-width="${strokeWidth}"/>
+  // The canvas is Printify's full print area; the design sits centered on
+  // the finished (trimmed) magnet inside it. The border is drawn slightly
+  // inside the trim line so normal cutting tolerance never clips it.
+  const offsetX = (spec.canvasWidthPx - spec.widthPx) / 2;
+  const offsetY = (spec.canvasHeightPx - spec.heightPx) / 2;
+  const borderInset = Math.round(spec.dpi * 0.08) + strokeWidth;
+  const borderStroke = Math.max(strokeWidth, Math.round(spec.dpi * 0.02));
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.canvasWidthPx}" height="${spec.canvasHeightPx}" viewBox="0 0 ${spec.canvasWidthPx} ${spec.canvasHeightPx}">
+<rect x="0" y="0" width="${spec.canvasWidthPx}" height="${spec.canvasHeightPx}" fill="#ffffff"/>
+<g transform="translate(${offsetX} ${offsetY})">
+<rect x="${borderInset}" y="${borderInset}" width="${spec.widthPx - borderInset * 2}" height="${spec.heightPx - borderInset * 2}" fill="none" stroke="#0a0a0a" stroke-width="${borderStroke}"/>
 <path d="${line1Path}" fill="#0a0a0a" fill-opacity="0.7"/>
 <line x1="${marginX}" y1="${ruleY}" x2="${marginX + ruleWidth}" y2="${ruleY}" stroke="#0a0a0a" stroke-opacity="0.6" stroke-width="${strokeWidth}"/>
 <path d="${line2Path}" fill="#0a0a0a"/>
+</g>
 </svg>`;
 }
 
