@@ -46,7 +46,7 @@ export async function createCheckoutSession(
   // them here and price every tag from its size (plus the bundle deal).
   for (const item of request.lineItems) {
     if (!SIZE_OPTIONS.some((size) => size.id === item.customization?.sizeId)) {
-      throw new Error("Unknown sticker size.");
+      throw new Error("Unknown magnet size.");
     }
     if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY_PER_LINE) {
       throw new Error("Invalid quantity.");

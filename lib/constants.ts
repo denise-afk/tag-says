@@ -7,14 +7,15 @@ export const SITE = {
   tagline: "Your tag says where you live. You say who you are.",
   eyebrow: "WHERE YOU LIVE \u2260 WHO YOU ARE",
   heroHeadline: "LET YOUR TAG SAY MORE.",
-  metaTitle: "TAG SAYS. | Custom Bumper Stickers That Say Where You're Really From",
+  metaTitle: "TAG SAYS. | Custom Car Magnets That Say Where You're Really From",
   metaDescription:
-    "Your tag says where you live. You say who you are. Create a personalized bumper sticker celebrating your hometown, culture, country, or identity.",
+    "Your tag says where you live. You say who you are. Create a personalized car magnet celebrating your hometown, culture, country, or identity.",
 };
 
 /**
- * The three physical sticker sizes offered at checkout, matching the
- * TAG SAYS. Printify catalog exactly. `widthIn`/`heightIn` are the real
+ * The physical car magnet sizes offered at checkout, matching the
+ * TAG SAYS. Printify catalog exactly (Car Magnets, blueprint 1464,
+ * District Photo provider 28). `widthIn`/`heightIn` are the real
  * product dimensions; `dpi` is fixed at 300 per the Printify print spec.
  * `printifyVariantId` is the exact variant in your Printify "TAG SAYS
  * Website" store (blueprint 598, print provider 73) that this size
@@ -35,30 +36,21 @@ export interface SizeOption {
 export const SIZE_OPTIONS: SizeOption[] = [
   {
     id: "compact",
-    label: '7.5" \u00d7 3.75"',
+    label: '7.5" \u00d7 4.5"',
     widthIn: 7.5,
-    heightIn: 3.75,
+    heightIn: 4.5,
     dpi: 300,
     priceCents: 1900,
-    printifyVariantId: 71929,
+    printifyVariantId: 105505,
   },
   {
     id: "classic",
-    label: '11" \u00d7 3"',
-    widthIn: 11,
+    label: '10" \u00d7 3"',
+    widthIn: 10,
     heightIn: 3,
     dpi: 300,
     priceCents: 2000,
-    printifyVariantId: 71930,
-  },
-  {
-    id: "wide",
-    label: '15" \u00d7 3.75"',
-    widthIn: 15,
-    heightIn: 3.75,
-    dpi: 300,
-    priceCents: 2200,
-    printifyVariantId: 71931,
+    printifyVariantId: 105497,
   },
 ];
 
@@ -113,7 +105,7 @@ export const HOW_IT_WORKS_STEPS = [
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
-    question: "What can I put on my sticker?",
+    question: "What can I put on my magnet?",
     answer:
       "Any city, state, country, culture, nationality, region, or hometown that feels like who you are \u2014 New Yorker, Jamaican, Chicago Born, Haitian Made, and everything in between.",
   },
@@ -138,9 +130,9 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Yes. Every tag you create is its own item, so a Georgia/New Yorker tag and a Florida/Jamaican tag can sit side by side in your cart.",
   },
   {
-    question: "Are the bumper stickers weather resistant?",
+    question: "Are the car magnets weather resistant?",
     answer:
-      "Yes. Every tag is printed on premium water-resistant vinyl rated for 5+ years outdoors, finished with a matte UV-protective laminate and a strong waterproof adhesive \u2014 built to hold up through sun, rain, and road grime.",
+      "Yes. Every tag is printed on durable, all-weather white vinyl with a matte finish and a strong magnetic back. It sticks to any metal surface, comes off cleanly with no residue, and holds up through sun, rain, and road grime. For best hold, apply to a clean, flat metal surface and remove before car washes.",
   },
   {
     question: "How long does shipping take?",
@@ -148,7 +140,7 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Most orders arrive within about 5\u20138 business days total: 2\u20133 business days to print your custom design, plus roughly 3\u20135 business days for standard U.S. shipping.",
   },
   {
-    question: "Can I preview my sticker before purchasing?",
+    question: "Can I preview my magnet before purchasing?",
     answer:
       "Always. The Create Your Tag builder shows a live, true-to-print preview as you type \u2014 nothing goes to cart until it looks right.",
   },

@@ -4,7 +4,7 @@ import { HOW_IT_WORKS_STEPS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "How It Works | TAG SAYS.",
-  description: "Two lines. Your story. Here's how a custom TAG SAYS. sticker comes together.",
+  description: "Two lines. Your story. Here's how a custom TAG SAYS. car magnet comes together.",
 };
 
 export default function HowItWorksPage() {

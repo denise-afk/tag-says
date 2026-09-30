@@ -46,8 +46,8 @@ export function StickerPreview({
       role="img"
       aria-label={
         isPlaceholder
-          ? "Sticker preview, not yet complete"
-          : `Sticker preview: ${lineOne} ${lineTwo}`
+          ? "Magnet preview, not yet complete"
+          : `Magnet preview: ${lineOne} ${lineTwo}`
       }
       style={{ aspectRatio }}
       className={[
@@ -90,7 +90,7 @@ export function StickerPreview({
         {lineTwo}
       </span>
 
-      <span className="sr-only">{sizeOption.label} sticker</span>
+      <span className="sr-only">{sizeOption.label} magnet</span>
     </div>
   );
 }

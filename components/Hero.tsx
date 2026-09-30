@@ -13,7 +13,7 @@ export function Hero() {
           {SITE.heroHeadline}
         </h1>
         <p className="mt-6 text-base sm:text-lg text-muted max-w-[42ch]">
-          {SITE.tagline} Create a clean, custom bumper sticker that tells the
+          {SITE.tagline} Create a clean, custom car magnet that tells the
           real story.
         </p>
         <Link

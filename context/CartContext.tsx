@@ -70,7 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const newItem: CartLineItem = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       productSlug: "custom-tag",
-      productName: "Personalized Bumper Sticker",
+      productName: "Personalized Car Magnet",
       customization,
       renderedLineOne: render.lineOne,
       renderedLineTwo: render.lineTwo,

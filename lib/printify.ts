@@ -3,7 +3,7 @@
  *
  * Requires PRINTIFY_API_KEY and PRINTIFY_SHOP_ID to be set server-side
  * (Vercel Project Settings \u2192 Environment Variables). BLUEPRINT_ID and
- * PRINT_PROVIDER_ID below identify the exact bumper sticker product +
+ * PRINT_PROVIDER_ID below identify the exact car magnet product +
  * manufacturer combination in your Printify "TAG SAYS Website" store
  * (shop 28824707) \u2014 change these only if you switch blueprints/providers
  * in Printify.
@@ -26,8 +26,9 @@ import { formatLineOne, formatLineTwo } from "./sticker";
 import { STICKER_FONT_BASE64 } from "./font-data";
 
 const PRINTIFY_API_BASE = "https://api.printify.com/v1";
-const BLUEPRINT_ID = 598;
-const PRINT_PROVIDER_ID = 73;
+// Car Magnets (blueprint 1464) printed by District Photo (provider 28).
+const BLUEPRINT_ID = 1464;
+const PRINT_PROVIDER_ID = 28;
 
 export const PRINT_FORMATS = ["png", "jpg", "svg"] as const;
 
@@ -212,14 +213,30 @@ export function generateStickerSvg(customization: TagCustomization): string {
   const maxLineWidth = spec.widthPx - marginX * 2;
   const line1MaxSize = Math.round(spec.heightPx * 0.14);
   const line2MaxSize = Math.round(spec.heightPx * 0.42);
-  const line1Y = Math.round(spec.heightPx * 0.28);
-  const ruleY = line1Y + Math.round(spec.heightPx * 0.06);
-  const line2Y = Math.round(spec.heightPx * 0.78);
+  let line1Y = Math.round(spec.heightPx * 0.28);
+  let ruleY = line1Y + Math.round(spec.heightPx * 0.06);
+  let line2Y = Math.round(spec.heightPx * 0.78);
   const ruleWidth = Math.round(spec.widthPx * 0.32);
   const strokeWidth = Math.max(2, Math.round(spec.heightPx * 0.004));
 
-  const line1Size = fitFontSize(lineOne, line1MaxSize, maxLineWidth, 2);
+  let line1Size = fitFontSize(lineOne, line1MaxSize, maxLineWidth, 2);
   const line2Size = fitFontSize(lineTwo, line2MaxSize, maxLineWidth);
+
+  // Taller magnets (e.g. 7.5" x 4.5"): long line-two text shrinks to fit
+  // the width, which would otherwise leave line one larger than line two
+  // with a big gap between them. Keep line one subordinate and center the
+  // whole block vertically, matching the on-site preview. Wide sizes
+  // (10" x 3") keep the original fixed layout above.
+  if (spec.widthPx / spec.heightPx < 2.5) {
+    const capHeight = 0.72;
+    line1Size = Math.min(line1Size, Math.round(line2Size * 0.4));
+    const gap = Math.round(line1Size * 0.45);
+    const blockHeight = line1Size * capHeight + gap * 2 + line2Size * capHeight;
+    const top = (spec.heightPx - blockHeight) / 2;
+    line1Y = Math.round(top + line1Size * capHeight);
+    ruleY = line1Y + gap;
+    line2Y = Math.round(ruleY + gap + line2Size * capHeight);
+  }
 
   const line1Path = textToPathData(lineOne, marginX, line1Y, line1Size, 2);
   const line2Path = textToPathData(lineTwo, marginX, line2Y, line2Size);

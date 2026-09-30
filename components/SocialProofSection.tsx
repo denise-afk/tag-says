@@ -1,11 +1,11 @@
 const CONCEPT_PHOTOS = [
   {
     src: "/images/road-georgia-new-yorker.jpg",
-    alt: "Concept rendering of a Georgia Tag, New Yorker bumper sticker on a car in traffic",
+    alt: "Concept rendering of a Georgia Tag, New Yorker car magnet on a car in traffic",
   },
   {
     src: "/images/road-florida-haitian-made.jpg",
-    alt: "Concept rendering of a Florida Tag, Haitian Made bumper sticker on a car at sunset",
+    alt: "Concept rendering of a Florida Tag, Haitian Made car magnet on a car at sunset",
   },
 ];
 

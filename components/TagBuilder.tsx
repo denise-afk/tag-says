@@ -204,7 +204,7 @@ export function TagBuilder() {
                       : `${remaining} character${remaining === 1 ? "" : "s"} left`}
                     {isLong && !showLineTwoError && (
                       <span className="block mt-1">
-                        Longer names shrink slightly to stay legible on the sticker.
+                        Longer names shrink slightly to stay legible on the magnet.
                       </span>
                     )}
                   </p>
@@ -263,7 +263,7 @@ export function TagBuilder() {
                       : `${remaining} character${remaining === 1 ? "" : "s"} left`}
                     {isLong && !showLineTwoError && (
                       <span className="block mt-1">
-                        Longer lines shrink slightly to stay legible on the sticker.
+                        Longer lines shrink slightly to stay legible on the magnet.
                       </span>
                     )}
                   </p>

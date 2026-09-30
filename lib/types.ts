@@ -1,4 +1,4 @@
-export type SizeId = "compact" | "classic" | "wide";
+export type SizeId = "compact" | "classic";
 
 /**
  * "state" is the flagship format: a license plate state on line one,
@@ -19,7 +19,7 @@ export interface TagCustomization {
   lineOneRaw: string;
   /** The raw text for line two \u2014 always free text, always the bold line. */
   lineTwoRaw: string;
-  /** Which physical sticker size the customer chose */
+  /** Which physical magnet size the customer chose */
   sizeId: SizeId;
 }
 

@@ -4,7 +4,7 @@ import { FAQ_ITEMS } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "FAQ | TAG SAYS.",
-  description: "Answers to common questions about custom TAG SAYS. bumper stickers.",
+  description: "Answers to common questions about custom TAG SAYS. car magnets.",
 };
 
 export default function FaqPage() {
