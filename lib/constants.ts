@@ -18,7 +18,7 @@ export const SITE = {
  * District Photo provider 28). `widthIn`/`heightIn` are the real
  * product dimensions; `dpi` is fixed at 300 per the Printify print spec.
  * `printifyVariantId` is the exact variant in your Printify "TAG SAYS
- * Website" store (blueprint 598, print provider 73) that this size
+ * Website" store (Car Magnets, blueprint 1464) that this size
  * fulfills through \u2014 see lib/printify.ts. Changing a size here
  * automatically updates the builder's size picker, the live preview's
  * proportions, pricing, and the print-file dimensions sent to Printify.

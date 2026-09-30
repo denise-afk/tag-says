@@ -3,6 +3,7 @@ import { Barlow_Condensed, Inter } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { Header } from "@/components/Header";
+import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { Footer } from "@/components/Footer";
 import { MetaPixel } from "@/components/MetaPixel";
 import { SITE } from "@/lib/constants";
@@ -47,6 +48,7 @@ export default function RootLayout({
           >
             Skip to content
           </a>
+          <AnnouncementBar />
           <Header />
           <main id="main">{children}</main>
           <Footer />
