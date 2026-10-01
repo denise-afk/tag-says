@@ -23,6 +23,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.mytagsays.com"),
   title: SITE.metaTitle,
   description: SITE.metaDescription,
   openGraph: {
