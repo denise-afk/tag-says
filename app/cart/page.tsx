@@ -173,12 +173,16 @@ export default function CartPage() {
               </Link>
             </p>
           )}
+          <div className="flex items-center justify-between text-sm mb-2">
+            <span>Shipping (U.S.)</span>
+            <span className="font-semibold">FREE</span>
+          </div>
           <div className="flex items-center justify-between font-display font-semibold uppercase text-sm mb-4 pt-2 border-t border-hairline">
             <span>Total</span>
             <span>{formatPrice(totalCents)}</span>
           </div>
           <p className="text-xs text-muted mb-6">
-            Shipping and taxes calculated at checkout. Have a promo code? Enter it on the next page.
+            Free U.S. shipping. No extra fees at checkout. Have a promo code? Enter it on the next page.
           </p>
           <button
             type="button"

@@ -8,7 +8,7 @@ export function AnnouncementBar() {
         <span className="font-display font-black uppercase tracking-wide text-xl sm:text-2xl block sm:inline">
           Now car magnets.
         </span>{" "}
-        No sticky residue. No paint damage. <span className="whitespace-nowrap">Buy 2, save $5.</span>
+        No paint damage. <span className="whitespace-nowrap">Free shipping.</span> <span className="whitespace-nowrap">Buy 2, save $5.</span>
       </Link>
     </div>
   );

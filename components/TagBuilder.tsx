@@ -347,6 +347,7 @@ export function TagBuilder() {
                     {unitPrice} each &middot; {selectedSize.label}
                   </p>
                   <p className="text-xs font-semibold mt-1">{BUNDLE.label}</p>
+                  <p className="text-xs font-semibold">Free U.S. shipping</p>
                 </div>
               </div>
 

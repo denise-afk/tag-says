@@ -148,7 +148,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How long does shipping take?",
     answer:
-      "Most orders arrive within about 5\u20138 business days total: 2\u20133 business days to print your custom design, plus roughly 3\u20135 business days for standard U.S. shipping.",
+      "Most orders arrive within about 5\u20138 business days total: 2\u20133 business days to print your custom design, plus roughly 3\u20135 business days for U.S. shipping. Shipping is always free.",
   },
   {
     question: "Can I preview my magnet before purchasing?",
