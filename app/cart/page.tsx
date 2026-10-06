@@ -77,9 +77,23 @@ export default function CartPage() {
 
   return (
     <section className="mx-auto max-w-content px-5 sm:px-8 py-12 sm:py-16">
-      <h1 className="font-display font-black uppercase text-4xl sm:text-5xl mb-10">
+      <h1 className="font-display font-black uppercase text-4xl sm:text-5xl mb-6 lg:mb-10">
         Your Cart
       </h1>
+
+      {/* On phones the summary sits below every tag, so put Checkout up top too. */}
+      <div className="lg:hidden mb-8">
+        <button
+          type="button"
+          onClick={handleCheckout}
+          disabled={isSubmitting}
+          className="w-full py-4 bg-ink text-paper font-display font-semibold uppercase tracking-wide text-sm hover:bg-ink/85 transition-colors disabled:opacity-60"
+        >
+          {isSubmitting ? "Redirecting..." : `Checkout \u00b7 ${formatPrice(totalCents)}`}
+        </button>
+        <p className="mt-2 text-xs text-muted text-center">Free U.S. shipping. No extra fees.</p>
+        {checkoutError && <p className="mt-2 text-sm text-red-700">{checkoutError}</p>}
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-12">
         <ul className="lg:col-span-2 divide-y divide-hairline border-t border-b border-hairline">

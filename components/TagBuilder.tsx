@@ -94,7 +94,8 @@ export function TagBuilder() {
       },
       quantity
     );
-    setJustAdded(true);
+    // Go straight to the cart so the Checkout button is right in front of them.
+    router.push("/cart");
   };
 
   // Bundle pricing kicks in at 2+ tags of this design; mixed designs get
@@ -356,7 +357,7 @@ export function TagBuilder() {
                 onClick={handleAddToCart}
                 className="mt-6 w-full py-4 bg-ink text-paper font-display font-semibold uppercase tracking-wide text-sm hover:bg-ink/85 transition-colors"
               >
-                Add My Tag
+                Add to Cart
               </button>
 
               {justAdded && (
